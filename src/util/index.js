@@ -12,6 +12,25 @@ const defaultDisabledTime = {
   },
 };
 
+export function noop() { }
+
+export function isArraysEqual(a, b) {
+  if (a === b) return true;
+  if (a === null || typeof a === 'undefined' || b === null || typeof b === 'undefined') {
+    return false;
+  }
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+export function isEmptyArray(arr) {
+  return Array.isArray(arr) && (arr.length === 0 || arr.every(i => !i));
+}
+
 export function getTodayTime(value) {
   const today = moment();
   today.locale(value.locale()).utcOffset(value.utcOffset());

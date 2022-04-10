@@ -1,8 +1,7 @@
-import React from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import KeyCode from 'rc-util/lib/KeyCode';
-import { polyfill } from 'react-lifecycles-compat';
 import moment from 'moment';
 import { formatDate } from '../util';
 
@@ -10,74 +9,46 @@ let cachedSelectionStart;
 let cachedSelectionEnd;
 let dateInputInstance;
 
-class DateInput extends React.Component {
-  static propTypes = {
-    prefixCls: PropTypes.string,
-    timePicker: PropTypes.object,
-    value: PropTypes.object,
-    disabledTime: PropTypes.any,
-    format: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
-    locale: PropTypes.object,
-    disabledDate: PropTypes.func,
-    onChange: PropTypes.func,
-    onClear: PropTypes.func,
-    placeholder: PropTypes.string,
-    onSelect: PropTypes.func,
-    selectedValue: PropTypes.object,
-    clearIcon: PropTypes.node,
-    inputMode: PropTypes.string,
-  }
+const DateInput = (props) => {
+  const {selectedValue, onClear : onClearProp, disabledDate, format, onChange, locale, prefixCls, placeholder, clearIcon, inputMode, value, onSelect, disabled, showClear} = props;
+  const [invalid, setInvalid] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const [str, setStr] =  useState(formatDate(selectedValue, format));
+  const inputField = useRef(null);
 
-  constructor(props) {
-    super(props);
-    const selectedValue = props.selectedValue;
+  useEffect(() => {
+    if(inputField.current !== null)
+    inputField.current.focus();
+  })
 
-    this.state = {
-      str: formatDate(selectedValue, this.props.format),
-      invalid: false,
-      hasFocus: false,
-    };
-  }
-
-  componentDidUpdate() {
-    if (dateInputInstance && this.state.hasFocus && !this.state.invalid &&
+  useEffect(() => {
+    if (dateInputInstance && hasFocus && !invalid &&
       !(cachedSelectionStart === 0 && cachedSelectionEnd === 0)) {
-      dateInputInstance.setSelectionRange(cachedSelectionStart, cachedSelectionEnd);
+        dateInputInstance.setSelectionRange(cachedSelectionStart, cachedSelectionEnd);
     }
+  }, [hasFocus, invalid])
+
+  const onClear = () => {
+    setStr('');
+    onClearProp(null);
   }
 
-  onClear = () => {
-    this.setState({
-      str: '',
-    });
-    this.props.onClear(null);
-  }
-
-  onInputChange = (event) => {
+  const onInputChange = (event) => {
     const str = event.target.value;
-    const { disabledDate, format, onChange, selectedValue } = this.props;
 
-    // 没有内容，合法并直接退出
     if (!str) {
       onChange(null);
-      this.setState({
-        invalid: false,
-        str,
-      });
+      setInvalid(false);
       return;
     }
 
-    // 不合法直接退出
     const parsed = moment(str, format, true);
     if (!parsed.isValid()) {
-      this.setState({
-        invalid: true,
-        str,
-      });
+      setInvalid(true);
       return;
     }
 
-    const value = this.props.value.clone();
+    const value = value.clone();
     value
       .year(parsed.year())
       .month(parsed.month())
@@ -87,38 +58,30 @@ class DateInput extends React.Component {
       .second(parsed.second());
 
     if (!value || (disabledDate && disabledDate(value))) {
-      this.setState({
-        invalid: true,
-        str,
-      });
+      setInvalid(true);
       return;
     }
 
     if (selectedValue !== value || (
       selectedValue && value && !selectedValue.isSame(value)
     )) {
-      this.setState({
-        invalid: false,
-        str,
-      });
+      setInvalid(false);
       onChange(value);
     }
   }
 
-  onFocus = () => {
-    this.setState({ hasFocus: true });
+  const onFocus = () => {
+    setHasFocus(true);
   }
 
-  onBlur = () => {
-    this.setState((prevState, prevProps) => ({
-      hasFocus: false,
-      str: formatDate(prevProps.value, prevProps.format),
-    }));
+  const onBlur = () => {
+    setHasFocus(false);
+    // Todo: prevProps.value and prevProps.format - old code
+    setStr(formatDate(value, format))
   }
 
-  onKeyDown = (event) => {
+  const onKeyDown = (event) => {
     const { keyCode } = event;
-    const { onSelect, value, disabledDate } = this.props;
     if (keyCode === KeyCode.ENTER && onSelect) {
       const validateDate = !disabledDate || !disabledDate(value);
       if (validateDate) {
@@ -128,78 +91,85 @@ class DateInput extends React.Component {
     }
   };
 
-  static getDerivedStateFromProps(nextProps, state) {
-    let newState = {};
+  // static getDerivedStateFromProps(nextProps, state) {
+  //   let newState = {};
 
-    if (dateInputInstance) {
-      cachedSelectionStart = dateInputInstance.selectionStart;
-      cachedSelectionEnd = dateInputInstance.selectionEnd;
-    }
-    // when popup show, click body will call this, bug!
-    const selectedValue = nextProps.selectedValue;
-    if (!state.hasFocus) {
-      newState = {
-        str: formatDate(selectedValue, nextProps.format),
-        invalid: false,
-      };
-    }
+  //   if (dateInputInstance) {
+  //     cachedSelectionStart = dateInputInstance.selectionStart;
+  //     cachedSelectionEnd = dateInputInstance.selectionEnd;
+  //   }
+  //   // when popup show, click body will call this, bug!
+  //   const selectedValue = nextProps.selectedValue;
+  //   if (!state.hasFocus) {
+  //     newState = {
+  //       str: formatDate(selectedValue, nextProps.format),
+  //       invalid: false,
+  //     };
+  //   }
 
-    return newState;
-  }
+  //   return newState;
+  // }
 
-  static getInstance() {
-    return dateInputInstance;
-  }
+  // static getInstance() {
+  //   return dateInputInstance;
+  // }
 
-  getRootDOMNode = () => {
+  const getRootDOMNode = () => {
     return ReactDOM.findDOMNode(this);
   }
 
-  focus = () => {
+  const focus = () => {
     if (dateInputInstance) {
-      dateInputInstance.focus();
+      inputField.focus();
     }
   }
 
-  saveDateInput = (dateInput) => {
-    dateInputInstance = dateInput;
-  }
-
-  render() {
-    const props = this.props;
-    const { invalid, str } = this.state;
-    const { locale, prefixCls, placeholder, clearIcon, inputMode } = props;
     const invalidClass = invalid ? `${prefixCls}-input-invalid` : '';
+
     return (
       <div className={`${prefixCls}-input-wrap`}>
         <div className={`${prefixCls}-date-input-wrap`}>
           <input
-            ref={this.saveDateInput}
+            ref={inputField}
             className={`${prefixCls}-input ${invalidClass}`}
             value={str}
-            disabled={props.disabled}
+            disabled={disabled}
             placeholder={placeholder}
-            onChange={this.onInputChange}
-            onKeyDown={this.onKeyDown}
-            onFocus={this.onFocus}
-            onBlur={this.onBlur}
+            onChange={onInputChange}
+            onKeyDown={onKeyDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
             inputMode={inputMode}
           />
         </div>
-        {props.showClear ? (
+        {showClear ? (
           <a
             role="button"
             title={locale.clear}
-            onClick={this.onClear}
+            onClick={onClear}
           >
             {clearIcon || <span className={`${prefixCls}-clear-btn`} />}
           </a>
         ) : null}
       </div>
     );
-  }
 }
 
-polyfill(DateInput);
+DateInput.propTypes = {
+  prefixCls: PropTypes.string,
+  timePicker: PropTypes.object,
+  value: PropTypes.object,
+  disabledTime: PropTypes.any,
+  format: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
+  locale: PropTypes.object,
+  disabledDate: PropTypes.func,
+  onChange: PropTypes.func,
+  onClear: PropTypes.func,
+  placeholder: PropTypes.string,
+  onSelect: PropTypes.func,
+  selectedValue: PropTypes.object,
+  clearIcon: PropTypes.node,
+  inputMode: PropTypes.string,
+}
 
 export default DateInput;

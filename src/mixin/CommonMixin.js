@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
+import React from 'react';
 import enUs from '../locale/en_US';
-
-function noop() {
-}
+import { noop } from '../util';
 
 export const propType = {
   className: PropTypes.string,

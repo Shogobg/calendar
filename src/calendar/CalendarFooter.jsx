@@ -1,11 +1,11 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
-import toFragment from 'rc-util/lib/Children/mapSelf';
-import cx from 'classnames';
-import TodayButton from '../calendar/TodayButton';
-import OkButton from '../calendar/OkButton';
-import TimePickerButton from '../calendar/TimePickerButton';
+import React from "react";
+import ReactDOM from "react-dom";
+import PropTypes from "prop-types";
+import toFragment from "rc-util/lib/Children/mapSelf";
+import cx from "classnames";
+import TodayButton from "./TodayButton";
+import OkButton from "./OkButton";
+import TimePickerButton from "./TimePickerButton";
 
 export default class CalendarFooter extends React.Component {
   static propTypes = {
@@ -19,8 +19,8 @@ export default class CalendarFooter extends React.Component {
     value: PropTypes.object,
     renderFooter: PropTypes.func,
     defaultValue: PropTypes.object,
-    mode: PropTypes.string,
-  }
+    mode: PropTypes.string
+  };
 
   onSelect(value) {
     this.props.onSelect(value);
@@ -33,18 +33,25 @@ export default class CalendarFooter extends React.Component {
   render() {
     const props = this.props;
     const { value, prefixCls, showOk, timePicker, renderFooter, mode } = props;
+
     let footerEl = null;
     const extraFooter = renderFooter && renderFooter(mode);
+
     if (props.showToday || timePicker || extraFooter) {
       let nowEl;
+
       if (props.showToday) {
         nowEl = <TodayButton {...props} value={value} />;
       }
+
       let okBtn;
-      if (showOk === true || showOk !== false && !!props.timePicker) {
+
+      if (showOk === true || (showOk !== false && !!props.timePicker)) {
         okBtn = <OkButton {...props} />;
       }
+
       let timePickerBtn;
+
       if (!!props.timePicker) {
         timePickerBtn = <TimePickerButton {...props} />;
       }
@@ -58,15 +65,13 @@ export default class CalendarFooter extends React.Component {
           </span>
         );
       }
+
       const cls = cx(`${prefixCls}-footer`, {
-        [`${prefixCls}-footer-show-ok`]: okBtn,
+        [`${prefixCls}-footer-show-ok`]: okBtn
       });
-      footerEl = (
-        <div className={cls}>
-          {footerBtn}
-        </div>
-      );
+      footerEl = <div className={cls}>{footerBtn}</div>;
     }
+
     return footerEl;
   }
 }

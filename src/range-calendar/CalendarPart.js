@@ -71,29 +71,29 @@ export default class CalendarPart extends React.Component {
         value: selectedValue[index],
       });
 
-    const dateInputElement = props.showDateInput &&
-      <DateInput
-        format={format}
-        locale={locale}
-        prefixCls={prefixCls}
-        timePicker={timePicker}
-        disabledDate={disabledDate}
-        placeholder={placeholder}
-        disabledTime={disabledTime}
-        value={value}
-        showClear={showClear || false}
-        selectedValue={selectedValue[index]}
-        onChange={onInputChange}
-        onSelect={onInputSelect}
-        clearIcon={clearIcon}
-        inputMode={inputMode}
-      />;
-
     return (
       <div
         className={`${rangeClassName}-part ${rangeClassName}-${direction}`}
       >
-        {dateInputElement}
+        {
+        props.showDateInput &&
+          <DateInput
+            format={format}
+            locale={locale}
+            prefixCls={prefixCls}
+            timePicker={timePicker}
+            disabledDate={disabledDate}
+            placeholder={placeholder}
+            disabledTime={disabledTime}
+            value={value}
+            showClear={showClear || false}
+            selectedValue={selectedValue[index]}
+            onChange={onInputChange}
+            onSelect={onInputSelect}
+            clearIcon={clearIcon}
+            inputMode={inputMode}
+          />
+        }
         <div style={{ outline: 'none' }}>
           <CalendarHeader
             {...newProps}

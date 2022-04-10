@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import moment from 'moment';
 import { isAllowedDate, getTodayTime } from '../util/index';
-
-function noop() {
-}
+import { noop } from '../util/index';
 
 export function getNowByCurrentStateValue(value) {
   let ret;
@@ -26,7 +24,6 @@ export const calendarMixinPropTypes = {
 export const calendarMixinDefaultProps = {
   onKeyDown: noop,
 };
-
 export const calendarMixinWrapper = ComposeComponent => class extends ComposeComponent {
   static displayName = 'CalendarMixinWrapper';
   static defaultProps = ComposeComponent.defaultProps;
